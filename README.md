@@ -1,4 +1,4 @@
-# 🛡️ Zero-Trust Architecture & Server Access Control 인프라 구축
+# 🛡️ Zero-Trust Architecture & DB Access Control 인프라 구축
 
 ## 📌 프로젝트 개요
 단순한 방화벽(경계 방어)에 의존하는 기존 네트워크의 한계를 극복하기 위해, **"아무도 신뢰하지 않는다"는 제로 트러스트(Zero-Trust) 철학**을 기반으로 서버 및 DB 접근 제어 인프라를 구축한 프로젝트입니다. Docker 컨테이너 망 분리를 시작으로, 네트워크 라우팅, OS 계정 권한, 데이터베이스 최소 권한 부여, 그리고 백그라운드 이상 탐지 데몬까지 인프라 전반의 보안 가시성을 확보했습니다.
