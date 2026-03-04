@@ -1,0 +1,81 @@
+version: '3.8'
+
+networks:
+  external_net: # 외부 공인 인터넷 망 (DMZ 역할 포함)
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+  internal_net: # 철저히 격리된 사내 내부 망
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.50.0/24
+
+services:
+  # 1. 정상 클라이언트 (개발자)
+  client:
+    image: ubuntu:22.04
+    container_name: client
+    command: sleep infinity
+    cap_add:
+      - NET_ADMIN # VPN 클라이언트 세팅을 위해 네트워크 제어 권한 부여
+    networks:
+      external_net:
+        ipv4_address: 172.20.0.10
+
+  # 2. 외부 공격자 (해커)
+  attacker:
+    image: kalilinux/kali-rolling # 각종 모의 해킹 툴이 내장된 칼리 리눅스
+    container_name: attacker
+    command: sleep infinity
+    networks:
+      external_net:
+        ipv4_address: 172.20.0.99
+
+  # 3. VPN Active 노드 (HA 구성)
+  vpn-active:
+    image: ubuntu:22.04
+    container_name: vpn-active
+    command: sleep infinity
+    cap_add:
+      - NET_ADMIN # iptables 및 Keepalived 제어용
+    networks:
+      external_net:
+        ipv4_address: 172.20.0.101
+      internal_net:
+        ipv4_address: 192.168.50.101
+
+  # 4. VPN Standby 노드 (HA 구성)
+  vpn-standby:
+    image: ubuntu:22.04
+    container_name: vpn-standby
+    command: sleep infinity
+    cap_add:
+      - NET_ADMIN
+    networks:
+      external_net:
+        ipv4_address: 172.20.0.102
+      internal_net:
+        ipv4_address: 192.168.50.102
+
+  # 5. 타겟 애플리케이션 / SSH 서버
+  app-server:
+    image: ubuntu:22.04
+    container_name: app-server
+    command: sleep infinity
+    cap_add:
+      - NET_ADMIN # Fail2ban이 iptables를 건드려야 하므로 권한 필요
+    networks:
+      internal_net:
+        ipv4_address: 192.168.50.10
+
+  # 6. 타겟 데이터베이스 (MariaDB)
+  db-server:
+    image: mariadb:10.11
+    container_name: db-server
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword # 초기 루트 패스워드
+    networks:
+      internal_net:
+        ipv4_address: 192.168.50.20
